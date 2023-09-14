@@ -29,6 +29,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 #include "CodeSection.iss"
 
 [Files]
-Source: "firebird.conf"; DestDir: "{win}"; Flags: ignoreversion
+Source: "firebird.conf"; DestDir: "{code:InstallerDirectory}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
