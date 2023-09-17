@@ -153,48 +153,31 @@ begin
   end;
 end;
 
-function GetFirebirdSettingValue(const AFileName, ASettingName: string): string;
+function GetFirebirdSettingValue(const AFirebirdConfContent: TStringList; const ASettingName: string): string;
 var
-  LFileContent: TStringList;
   LSettingIdexes: TSettingIndexes;
 begin
   Result := '';
 
-  if not FileExists(AFileName) then
-    Exit;
+  LSettingIdexes := GetSettingIndexes(AFirebirdConfContent, ASettingName);
 
-  LFileContent := TStringList.Create;
-  try
-    LFileContent.LoadFromFile(AFileName);
-
-    LSettingIdexes := GetSettingIndexes(LFileContent, ASettingName);
-
-    if LSettingIdexes.SettingIndex >= 0 then
-      Result := ParseSettingValue(LFileContent, LSettingIdexes.SettingIndex);
-  finally
-    LFileCOntent.Free;
-  end;
+  if LSettingIdexes.SettingIndex >= 0 then
+    Result := ParseSettingValue(AFirebirdConfContent, LSettingIdexes.SettingIndex);
 end;
 
-function GetFirebirdSettingDefaultValue(const AFileName, ASettingName: string): string;
+function GetFirebirdSettingDefaultValue(const AFirebirdConfContent: TStringList; const ASettingName: string): string;
 var
-  LFileContent: TStringList;
   LSettingIdexes: TSettingIndexes;
 begin
   Result := '';
 
-  if not FileExists(AFileName) then
-    Exit;
+  LSettingIdexes := GetSettingIndexes(AFirebirdConfContent, ASettingName);
 
-  LFileContent := TStringList.Create;
-  try
-    LFileContent.LoadFromFile(AFileName);
+  if LSettingIdexes.PrototypeSettingIndex >= 0 then
+    Result := ParseSettingValue(AFirebirdConfContent, LSettingIdexes.PrototypeSettingIndex);
+end;
 
-    LSettingIdexes := GetSettingIndexes(LFileContent, ASettingName);
-
-    if LSettingIdexes.PrototypeSettingIndex >= 0 then
-      Result := ParseSettingValue(LFileContent, LSettingIdexes.PrototypeSettingIndex);
-  finally
-    LFileCOntent.Free;
-  end;
+procedure SetFirebirdSettingValue(const AFirebirdConfContent: TStringList; const ASettingName, ANewValue: string);
+begin
+  // DO nothing for now
 end;

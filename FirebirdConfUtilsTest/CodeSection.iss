@@ -38,68 +38,101 @@ begin
   WizardForm.Close;
 end;
 
-procedure DoTestGetFirebirdSettingValue(const AFirebirdConfFilename, ASettingName, AExpectedValue: string; var ATestResults: TTestResults);
+procedure DoTestGetFirebirdSettingValue(const AFirebirdConfContent: TStringList; const ASettingName, AExpectedValue: string; var ATestResults: TTestResults);
 var
   LSetting: string;
 begin
   Inc(ATestResults.TestCount);
 
-  LSetting := GetFirebirdSettingValue(AFirebirdConfFilename, ASettingName);
+  LSetting := GetFirebirdSettingValue(AFirebirdConfContent, ASettingName);
 
   if LSetting <> AExpectedValue then
   begin
     Inc(ATestResults.ErrorCount);
 
     AbortInstallation('Error testing GetFirebirdSettingValue with SettingName: "' + ASettingName 
-      + '" SettingValue form file: "' + LSetting + '" Expected value: "' + AExpectedValue + '"')
+      + '" SettingValue form file: "' + LSetting + '" Expected value: "' + AExpectedValue + '"');
   end
   else
     Inc(ATestResults.SuccessfullCount);
 end;
 
-procedure DoTestGetFirebirdSettingDefaultValue(const AFirebirdConfFilename, ASettingName, AExpectedValue: string; var ATestResults: TTestResults);
+procedure DoTestGetFirebirdSettingDefaultValue(const AFirebirdConfContent: TStringList; const ASettingName, AExpectedValue: string; var ATestResults: TTestResults);
 var
   LSetting: string;
 begin
   Inc(ATestResults.TestCount);
 
-  LSetting := GetFirebirdSettingDefaultValue(AFirebirdConfFilename, ASettingName);
+  LSetting := GetFirebirdSettingDefaultValue(AFirebirdConfContent, ASettingName);
 
   if LSetting <> AExpectedValue then
   begin
     Inc(ATestResults.ErrorCount);
 
     AbortInstallation('Error testing GetFirebirdSettingValue with SettingName: "' + ASettingName 
-      + '" SettingValue form file: "' + LSetting + '" Expected value: "' + AExpectedValue + '"')
+      + '" SettingValue form file: "' + LSetting + '" Expected value: "' + AExpectedValue + '"');
   end
   else
     Inc(ATestResults.SuccessfullCount);
 end;
 
-
-procedure TestGetFirebirdSettingValue(const AFirebirdConfFilename: string; var ATestResults: TTestResults);
+procedure DoTestSetFirebirdSettingValue(const AFirebirdConfContent: TStringList; const ASettingName, ANewValue: string; var ATestResults: TTestResults);
+var
+  LTempFileContent: TStringList;
+  LSetting: string;
 begin
-  DoTestGetFirebirdSettingValue(AFirebirdConfFilename, 'Foo', '', ATestResults);
-  DoTestGetFirebirdSettingValue(AFirebirdConfFilename, 'FoO', '', ATestResults);
-  DoTestGetFirebirdSettingValue(AFirebirdConfFilename, 'foo', '', ATestResults);
-  DoTestGetFirebirdSettingValue(AFirebirdConfFilename, 'FOO', '', ATestResults);
+  Inc(ATestResults.TestCount);
+
+  LTempFileContent := TStringList.Create;
+   try
+     LTempFileContent.AddStrings(AFirebirdConfContent);
+
+    SetFirebirdSettingValue(LTempFileContent, ASettingName, ANewValue);
+
+    LSetting := GetFirebirdSettingValue(LTempFileContent, ASettingName);
+
+    if LSetting <> ANewValue then
+    begin
+      Inc(ATestResults.ErrorCount);
+
+      AbortInstallation('Error testing GetFirebirdSettingValue with SettingName: "' + ASettingName 
+        + '" SettingValue form file: "' + LSetting + '" Expected new value: "' + ANewValue + '"');
+    end
+    else
+      Inc(ATestResults.SuccessfullCount);
+  finally
+    LTempFileContent.Free;
+  end;
+end;
+
+procedure TestGetFirebirdSettingValue(const AFirebirdConfContent: TStringList; var ATestResults: TTestResults);
+begin
+  DoTestGetFirebirdSettingValue(AFirebirdConfContent, 'Foo', '', ATestResults);
+  DoTestGetFirebirdSettingValue(AFirebirdConfContent, 'FoO', '', ATestResults);
+  DoTestGetFirebirdSettingValue(AFirebirdConfContent, 'foo', '', ATestResults);
+  DoTestGetFirebirdSettingValue(AFirebirdConfContent, 'FOO', '', ATestResults);
   // 
-  DoTestGetFirebirdSettingValue(AFirebirdConfFilename, 'DefaultDbCachePages', '11K', ATestResults);
-  DoTestGetFirebirdSettingValue(AFirebirdConfFilename, 'DEFAULTDBCACHEPAGES', '11K', ATestResults);
-  DoTestGetFirebirdSettingValue(AFirebirdConfFilename, 'defaultdbcachepages', '11K', ATestResults);
-  DoTestGetFirebirdSettingValue(AFirebirdConfFilename, 'InlineSortThreshold', '16384', ATestResults);
+  DoTestGetFirebirdSettingValue(AFirebirdConfContent, 'DefaultDbCachePages', '11K', ATestResults);
+  DoTestGetFirebirdSettingValue(AFirebirdConfContent, 'DEFAULTDBCACHEPAGES', '11K', ATestResults);
+  DoTestGetFirebirdSettingValue(AFirebirdConfContent, 'defaultdbcachepages', '11K', ATestResults);
+  DoTestGetFirebirdSettingValue(AFirebirdConfContent, 'InlineSortThreshold', '16384', ATestResults);
 end;
 
-procedure TestGetFirebirdSettingDefaultValue(const AFirebirdConfFilename: string; var ATestResults: TTestResults);
+procedure TestGetFirebirdSettingDefaultValue(const AFirebirdConfContent: TStringList; var ATestResults: TTestResults);
 begin
-  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfFilename, 'Foo', '', ATestResults);
-  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfFilename, 'FoO', '', ATestResults);
-  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfFilename, 'foo', '', ATestResults);
-  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfFilename, 'FOO', '', ATestResults);
+  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfContent, 'Foo', '', ATestResults);
+  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfContent, 'FoO', '', ATestResults);
+  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfContent, 'foo', '', ATestResults);
+  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfContent, 'FOO', '', ATestResults);
 
-  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfFilename, 'DefaultDbCachePages', '2048', ATestResults);
-  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfFilename, 'DEFAULTDBCACHEPAGES', '2048', ATestResults);
-  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfFilename, 'defaultdbcachepages', '2048', ATestResults);
+  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfContent, 'DefaultDbCachePages', '2048', ATestResults);
+  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfContent, 'DEFAULTDBCACHEPAGES', '2048', ATestResults);
+  DoTestGetFirebirdSettingDefaultValue(AFirebirdConfContent, 'defaultdbcachepages', '2048', ATestResults);
+end;
+
+procedure TestSetrFirebirdSettingValue(const AFirebirdConfContent: TStringList; var ATestResults: TTestResults);
+begin
+  DoTestSetFirebirdSettingValue(AFirebirdConfContent, 'Foo', 'Foo', ATestResults);
 end;
 
 const
@@ -110,6 +143,7 @@ var
   LTestsResults: TTestResults;
   LInstallerDirectory: string;
   LFirebirdConfFilename: string;
+  LConfFileContent: TStringList;
 begin
   LTestsResults.TestCount := 0;
   LTestsResults.SuccessfullCount := 0;
@@ -134,13 +168,22 @@ begin
         if not FileExists(LFirebirdConfFilename) then
           AbortInstallation(FIREBIRD_CONF_FILE + ' -file not installed yeet at : "' + LFirebirdConfFilename + '"');
 
-        // Test code into here...
-        TestGetFirebirdSettingValue(LFirebirdConfFilename, LTestsResults);
-        TestGetFirebirdSettingDefaultValue(LFirebirdConfFilename, LTestsResults);
+        LConfFileContent := TStringList.Create;
+        try
+          LConfFileContent.LoadFromFile(LFirebirdConfFilename);
 
-        // Kind of Kludge, but beats the Access denied etc message we get now.
-        AllTestsAreOK('OK: ' + IntToStr(LTestsResults.SuccessfullCount) + ' failed: ' + IntToStr(LTestsResults.ErrorCount)
-          + ' Totals : ' + IntToStr(LTestsResults.TestCount));
+          // Test code into here...
+          TestGetFirebirdSettingValue(LConfFileContent, LTestsResults);
+          TestGetFirebirdSettingDefaultValue(LConfFileContent, LTestsResults);
+
+          //
+          TestSetrFirebirdSettingValue(LConfFileContent, LTestsResults);
+          // Kind of Kludge, but beats the Access denied etc message we get now.
+          AllTestsAreOK(' Total : ' + IntToStr(LTestsResults.TestCount) + #13#10 + ' Successful: ' + IntToStr(LTestsResults.SuccessfullCount) + #13#10
+            + ' failed: ' + IntToStr(LTestsResults.ErrorCount));
+        finally
+          LConfFileContent.Free;
+        end;
       end;
   end;
 end;
