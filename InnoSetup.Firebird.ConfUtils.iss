@@ -153,31 +153,41 @@ begin
   end;
 end;
 
-function GetFirebirdSettingValue(const AFirebirdConfContent: TStringList; const ASettingName: string): string;
-var
-  LSettingIdexes: TSettingIndexes;
+function GetFirebirdSettingValueByIndex(const AFirebirdConfContent: TStringList; const ASettingIndexes: TSettingIndexes): string;
 begin
   Result := '';
 
-  LSettingIdexes := GetSettingIndexes(AFirebirdConfContent, ASettingName);
+  if ASettingIndexes.SettingIndex >= 0 then
+    Result := ParseSettingValue(AFirebirdConfContent, ASettingIndexes.SettingIndex);
+end;
 
-  if LSettingIdexes.SettingIndex >= 0 then
-    Result := ParseSettingValue(AFirebirdConfContent, LSettingIdexes.SettingIndex);
+function GetFirebirdSettingValue(const AFirebirdConfContent: TStringList; const ASettingName: string): string;
+var
+  LSettingIndexes: TSettingIndexes;
+begin
+  LSettingIndexes := GetSettingIndexes(AFirebirdConfContent, ASettingName);
+
+  Result := GetFirebirdSettingValueByIndex(AFirebirdConfContent, LSettingIndexes);
+end;
+
+function GetFirebirdSettingDefaultValueByIndex(const AFirebirdConfContent: TStringList; const ASettingIndexes: TSettingIndexes): string;
+begin
+  Result := '';
+
+  if ASettingIndexes.PrototypeSettingIndex >= 0 then
+    Result := ParseSettingValue(AFirebirdConfContent, ASettingIndexes.PrototypeSettingIndex);
 end;
 
 function GetFirebirdSettingDefaultValue(const AFirebirdConfContent: TStringList; const ASettingName: string): string;
 var
-  LSettingIdexes: TSettingIndexes;
+  LSettingIndexes: TSettingIndexes;
 begin
-  Result := '';
+  LSettingIndexes := GetSettingIndexes(AFirebirdConfContent, ASettingName);
 
-  LSettingIdexes := GetSettingIndexes(AFirebirdConfContent, ASettingName);
-
-  if LSettingIdexes.PrototypeSettingIndex >= 0 then
-    Result := ParseSettingValue(AFirebirdConfContent, LSettingIdexes.PrototypeSettingIndex);
+  Result := GetFirebirdSettingDefaultValueByIndex(AFirebirdConfContent, LSettingIndexes);
 end;
 
 procedure SetFirebirdSettingValue(const AFirebirdConfContent: TStringList; const ASettingName, ANewValue: string);
 begin
-  // DO nothing for now
+  // Not implemented
 end;
