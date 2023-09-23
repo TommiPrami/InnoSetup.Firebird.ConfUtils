@@ -3,6 +3,9 @@
 // Requires Windows.iss
 
 const
+  GIGA_BYTE = 1073741824; // 2 base Gigabyte In Bytes
+  MEGA_BYTE = 1048576; // 2 base Megabyte In Bytes
+  KILO_BYTE = 1024;  // 2 base kilobyte In Bytes
   // Define page size you prefer
   DEFAULT_PAGE_SIZE = 32768;
   // 
@@ -71,7 +74,7 @@ var
   LValueLength: Integer; 
 begin
   LValueLength := Length(AStrValue);
-  
+
   for LStartIndex := 1 to LValueLength do
   begin
     if AStrValue[LStartIndex] <> '#' then
@@ -92,7 +95,7 @@ begin
   LSettingLine := Trim(AFileContent[ASettingIndex]);
 
   LLength := Length(LSettingLine);
-  
+
   if LLength > 1 then
   begin
     if LSettingLine[1] = '#' then
@@ -119,13 +122,13 @@ begin
     Exit;
 
   LTextStart := AnsiUppercase(Copy(AText, 1, LPrefixLength));
-  
+
   Result := AnsiUppercase(APrefix) = LTextStart;
 end;
 
 function HasIndexes(const ASettingIdexes: TSettingIndexes): Boolean;
 begin
-  Result := (ASettingIdexes.PrototypeSettingIndex <> -1) or (ASettingIdexes.SettingIndex <> -1)
+  Result := (ASettingIdexes.PrototypeSettingIndex <> -1) or (ASettingIdexes.SettingIndex <> -1);
 end;
 
 function GetSettingIndexes(const AFileContent: TStringList; const ASettingName: string): TSettingIndexes;
@@ -142,7 +145,7 @@ begin
   for LIndex := 0 to AFileContent.Count - 1 do
   begin
     LCurrentLine := Trim(AFileContent[LIndex]);
-    
+
     if StringStartsWith(LCurrentLine, ASettingName) then
       Result.SettingIndex := LIndex
     else if StringStartsWith(LCurrentLine, LPrototypeSettingName) then
@@ -187,7 +190,49 @@ begin
   Result := GetFirebirdSettingDefaultValueByIndex(AFirebirdConfContent, LSettingIndexes);
 end;
 
-procedure SetFirebirdSettingValue(const AFirebirdConfContent: TStringList; const ASettingName, ANewValue: string);
+// If you want exaxt value, without rounding error, use some other method
+function FormatIntegerValue(const AIntegerValue: Int64): string;
 begin
-  // Not implemented
+  if AIntegerValue >= GIGA_BYTE then // GB
+    Result := IntToStr(Round(AIntegerValue / GIGA_BYTE)) + 'G'
+  else if AIntegerValue >= MEGA_BYTE then
+    Result := IntToStr(Round(AIntegerValue / MEGA_BYTE)) + 'M'
+  else if AIntegerValue >= KILO_BYTE then
+    Result := IntToStr(Round(AIntegerValue / KILO_BYTE)) + 'K'
+  else
+    Result := IntToStr(AIntegerValue);
+end;
+
+function FormatSettingLine(const ASettingName, AValue: string): string;
+begin
+  Result := ASettingName + ' = ' + AValue;
+end;
+
+procedure SetFirebirdSettingValueByIndex(const AFirebirdConfContent: TStringList; const ASettingIndexes: TSettingIndexes; 
+  const ASettingName, ANewValue: string);
+begin
+    // PrototypeSettingIndex: Integer;
+    // SettingIndex: Integer;
+
+
+  if not HasIndexes(ASettingIndexes) then
+  begin
+    AFirebirdConfContent.Add('');
+    AFirebirdConfContent.Add('#' + FormatSettingLine(ASettingName, ''));
+    AFirebirdConfContent.Add(FormatSettingLine(ASettingName, ANewValue));
+  end
+  else if ASettingIndexes.SettingIndex <> -1 then
+    AFirebirdConfContent[ASettingIndexes.SettingIndex] := FormatSettingLine(ASettingName, ANewValue)
+  else
+    AFirebirdConfContent.Insert(ASettingIndexes.PrototypeSettingIndex + 1, FormatSettingLine(ASettingName, ANewValue));
+end;
+
+
+procedure SetFirebirdSettingValue(const AFirebirdConfContent: TStringList; const ASettingName, ANewValue: string);
+var
+  LSettingIndexes: TSettingIndexes;
+begin
+  LSettingIndexes := GetSettingIndexes(AFirebirdConfContent, ASettingName);
+
+  SetFirebirdSettingValueByIndex(AFirebirdConfContent, LSettingIndexes, ASettingName, ANewValue)
 end;

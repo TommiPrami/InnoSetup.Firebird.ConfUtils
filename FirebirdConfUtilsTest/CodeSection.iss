@@ -25,7 +25,7 @@ procedure AbortInstallation(const AErrorMessage: string);
 begin
   if AErrorMessage <> '' then
     MsgBox(AErrorMessage, mbCriticalError, MB_OK);
-  
+
   CancelWithoutPrompt := True;
   WizardForm.Close;
 end;
@@ -33,7 +33,7 @@ end;
 procedure AllTestsAreOK(const AErrorMessage: string);
 begin
   MsgBox(AErrorMessage, mbInformation, MB_OK);
-  
+
   CancelWithoutPrompt := True;
   WizardForm.Close;
 end;
@@ -76,9 +76,11 @@ begin
     Inc(ATestResults.SuccessfullCount);
 end;
 
-procedure DoTestSetFirebirdSettingValue(const AFirebirdConfContent: TStringList; const ASettingName, ANewValue: string; var ATestResults: TTestResults);
+procedure DoTestSetFirebirdSettingValue(const AFirebirdConfContent: TStringList; const ASettingName, ANewValue: string;
+  const ASettingInxex: Integer; var ATestResults: TTestResults);
 var
   LTempFileContent: TStringList;
+  LSettingIndexes: TSettingIndexes;
   LSetting: string;
 begin
   Inc(ATestResults.TestCount);
@@ -99,7 +101,20 @@ begin
         + '" SettingValue form file: "' + LSetting + '" Expected new value: "' + ANewValue + '"');
     end
     else
-      Inc(ATestResults.SuccessfullCount);
+    begin
+      LSettingIndexes := GetSettingIndexes(LTempFileContent, ASettingName);
+
+      if LSettingIndexes.SettingIndex <> ASettingInxex then
+      begin
+        Inc(ATestResults.ErrorCount);
+
+        AbortInstallation('Error testing GetFirebirdSettingValue with SettingName: "' + ASettingName 
+          + '" SettingIndex form file: "' + IntToStr(LSettingIndexes.SettingIndex) 
+          + '" Expected Index value: "' + IntToStr(ASettingInxex) + '"');
+      end
+      else
+        Inc(ATestResults.SuccessfullCount);
+    end;
   finally
     LTempFileContent.Free;
   end;
@@ -130,9 +145,11 @@ begin
   DoTestGetFirebirdSettingDefaultValue(AFirebirdConfContent, 'defaultdbcachepages', '2048', ATestResults);
 end;
 
-procedure TestSetrFirebirdSettingValue(const AFirebirdConfContent: TStringList; var ATestResults: TTestResults);
+procedure TestSetFirebirdSettingValue(const AFirebirdConfContent: TStringList; var ATestResults: TTestResults);
 begin
-  DoTestSetFirebirdSettingValue(AFirebirdConfContent, 'Foo', 'Foo', ATestResults);
+  DoTestSetFirebirdSettingValue(AFirebirdConfContent, 'Foo', 'Foo', 1215, ATestResults);
+  DoTestSetFirebirdSettingValue(AFirebirdConfContent, 'DefaultDbCachePages', '33554432', 258, ATestResults);
+  DoTestSetFirebirdSettingValue(AFirebirdConfContent, 'TcpRemoteBufferSize', FormatIntegerValue(16384), 866, ATestResults);
 end;
 
 const
@@ -148,7 +165,7 @@ begin
   LTestsResults.TestCount := 0;
   LTestsResults.SuccessfullCount := 0;
   LTestsResults.ErrorCount := 0;
-  
+
   case CurStep of
     ssInstall:
       begin
@@ -177,7 +194,7 @@ begin
           TestGetFirebirdSettingDefaultValue(LConfFileContent, LTestsResults);
 
           //
-          TestSetrFirebirdSettingValue(LConfFileContent, LTestsResults);
+          TestSetFirebirdSettingValue(LConfFileContent, LTestsResults);
           // Kind of Kludge, but beats the Access denied etc message we get now.
           AllTestsAreOK(' Total : ' + IntToStr(LTestsResults.TestCount) + #13#10 + ' Successful: ' + IntToStr(LTestsResults.SuccessfullCount) + #13#10
             + ' failed: ' + IntToStr(LTestsResults.ErrorCount));
