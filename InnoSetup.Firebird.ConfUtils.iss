@@ -1,6 +1,9 @@
 // InnoSetup.Firebird.ConfUtils.iss
 
-// Requires Windows.iss
+{ 
+  * Requires Windows.iss
+    - You can get it from the GitHUB: https://github.com/TommiPrami/InnoSetup.Windows
+}
 
 const
   GIGA_BYTE = 1073741824; // 2 base Gigabyte In Bytes
