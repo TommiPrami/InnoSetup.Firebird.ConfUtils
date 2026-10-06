@@ -1,4 +1,4 @@
-// InnoSetup.Firebird.ConfUtils.iss
+﻿// InnoSetup.Firebird.ConfUtils.iss
 
 { 
   * Requires Windows.iss
